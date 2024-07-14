@@ -5,6 +5,7 @@ import PantallaInicioSesion from './components/PantallaInicioSesion';
 import PantallaInicio from './components/PantallaInicio';
 import PantallaUbicaciones from './components/PantallaUbicaciones';
 import DetallesUbicacion from './components/DetallesUbicacion';
+import DetalleLugar from './components/DetalleLugar';
 
 const Stack = createStackNavigator();
 
@@ -16,6 +17,7 @@ export default function Aplicacion() {
         <Stack.Screen name="Inicio" component={PantallaInicio} options={{ headerShown: false }} />
         <Stack.Screen name="Ubicaciones" component={PantallaUbicaciones} options={{ headerShown: false }} />
         <Stack.Screen name="DetallesUbicacion" component={DetallesUbicacion} options={{ headerShown: false }} />
+        <Stack.Screen name="DetalleLugar" component={DetalleLugar} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

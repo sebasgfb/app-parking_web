@@ -20,13 +20,15 @@ const DetallesUbicacion = ({ route, navigation }) => {
       };
 
     obtenerLugares();
-  }, []);
+  }, [ubicacionId]);
 
   const renderTarjetaLugar = ({ item }) => (
-    <View style={styles.tarjeta}>
-      <Text style={styles.tituloTarjeta}>{item.numero}</Text>
-      <Text style={styles.estado}>{item.estado}</Text>
-    </View>
+    <Pressable onPress={() => navigation.navigate('DetalleLugar', { lugarId: item.id })}>
+      <View style={styles.tarjeta}>
+        <Text style={styles.tituloTarjeta}>{item.numero}</Text>
+        <Text style={styles.estado}>{item.estado}</Text>
+      </View>
+    </Pressable>
   );
 
   if (cargando) {
