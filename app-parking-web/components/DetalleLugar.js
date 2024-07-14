@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList, TextInput, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, FlatList, Pressable, Platform } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const DetalleLugar = ({ route, navigation }) => {
   const { lugarId } = route.params;
   const [reservas, setReservas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [formData, setFormData] = useState({
-    fecha_reserva: '',
-    fecha_liberacion: ''
+    fecha_reserva: new Date(),
+    fecha_liberacion: new Date(),
   });
+  const [showReservaPicker, setShowReservaPicker] = useState(false);
+  const [showLiberacionPicker, setShowLiberacionPicker] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Función para obtener reservas
   const obtenerReservas = async () => {
     try {
       const response = await axios.get(`http://127.0.0.1:8000/api/lugares/${lugarId}/reservas/`);
@@ -25,21 +31,57 @@ const DetalleLugar = ({ route, navigation }) => {
 
   useEffect(() => {
     obtenerReservas();
-  }, []); // Ejecutar solo al montar el componente
+  }, []);
+
+  const validarFechas = () => {
+    const now = new Date();
+    if (formData.fecha_reserva < now || formData.fecha_liberacion < now) {
+      setError('No se puede reservar en el pasado o en la hora actual.');
+      return false;
+    }
+    if (formData.fecha_reserva >= formData.fecha_liberacion) {
+      setError('La fecha de liberación debe ser posterior a la fecha de reserva.');
+      return false;
+    }
+    for (let reserva of reservas) {
+      const reservaInicio = new Date(reserva.fecha_reserva);
+      const reservaFin = new Date(reserva.fecha_liberacion);
+      if (
+        (formData.fecha_reserva < reservaFin && formData.fecha_liberacion > reservaInicio)
+      ) {
+        setError('Ya existe una reserva en el intervalo de fechas seleccionadas.');
+        return false;
+      }
+    }
+    setError(null);
+    return true;
+  };
 
   const crearReserva = async () => {
+    if (!validarFechas()) {
+      return;
+    }
+
     try {
-      const response = await axios.post(`http://127.0.0.1:8000/api/reservas/`, {
-        lugar: lugarId,
-        fecha_reserva: formData.fecha_reserva,
-        fecha_liberacion: formData.fecha_liberacion
-      });
-      // Actualizar las reservas después de crear una nueva reserva
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        console.error('Token no encontrado.');
+        return;
+      }
+
+      const headers = {
+        'Authorization': `Token ${token}`,
+        'Content-Type': 'application/json',
+      };
+
+      const response = await axios.post('http://127.0.0.1:8000/api/crear_reserva/', {
+        fecha_reserva: formData.fecha_reserva.toISOString(),
+        fecha_liberacion: formData.fecha_liberacion.toISOString(),
+        lugar: lugarId
+      }, { headers });
+
+      console.log('Reserva creada:', response.data);
       obtenerReservas();
-      setFormData({
-        fecha_reserva: '',
-        fecha_liberacion: ''
-      }); // Limpiar el formulario después de crear la reserva
     } catch (error) {
       console.error('Error al crear reserva:', error);
     }
@@ -48,8 +90,9 @@ const DetalleLugar = ({ route, navigation }) => {
   const renderTarjetaReserva = ({ item }) => (
     <View style={styles.tarjeta}>
       <Text style={styles.tituloTarjeta}>Reserva ID: {item.id}</Text>
-      <Text style={styles.detalle}>Fecha de Reserva: {item.fecha_reserva}</Text>
-      <Text style={styles.detalle}>Fecha de Liberación: {item.fecha_liberacion}</Text>
+      <Text style={styles.detalle}>Fecha de Reserva: {new Date(item.fecha_reserva).toLocaleString()}</Text>
+      <Text style={styles.detalle}>Fecha de Liberación: {new Date(item.fecha_liberacion).toLocaleString()}</Text>
+      <Text style={styles.detalle}>Cliente: {item.cliente}</Text>
     </View>
   );
 
@@ -70,21 +113,81 @@ const DetalleLugar = ({ route, navigation }) => {
         <Text style={styles.tituloNavegacion}>Detalle del Lugar</Text>
       </View>
       <Text style={styles.titulo}>Reservas</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Fecha de Reserva"
-        value={formData.fecha_reserva}
-        onChangeText={(text) => setFormData({ ...formData, fecha_reserva: text })}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Fecha de Liberación"
-        value={formData.fecha_liberacion}
-        onChangeText={(text) => setFormData({ ...formData, fecha_liberacion: text })}
-      />
+
+      {error && (
+        <Text style={styles.errorText}>{error}</Text>
+      )}
+
+      <Pressable onPress={() => setShowReservaPicker(true)} style={styles.input}>
+        <Text>{formData.fecha_reserva.toLocaleString()}</Text>
+      </Pressable>
+      {showReservaPicker && (
+        Platform.OS === 'web' ? (
+          <DatePicker
+            selected={formData.fecha_reserva}
+            onChange={(date) => {
+              setShowReservaPicker(false);
+              if (date) {
+                setFormData({ ...formData, fecha_reserva: date });
+              }
+            }}
+            showTimeSelect
+            dateFormat="Pp"
+            timeIntervals={15}
+            inline
+          />
+        ) : (
+          <DateTimePicker
+            value={formData.fecha_reserva}
+            mode="datetime"
+            display="default"
+            onChange={(event, date) => {
+              setShowReservaPicker(false);
+              if (date) {
+                setFormData({ ...formData, fecha_reserva: date });
+              }
+            }}
+          />
+        )
+      )}
+
+      <Pressable onPress={() => setShowLiberacionPicker(true)} style={styles.input}>
+        <Text>{formData.fecha_liberacion.toLocaleString()}</Text>
+      </Pressable>
+      {showLiberacionPicker && (
+        Platform.OS === 'web' ? (
+          <DatePicker
+            selected={formData.fecha_liberacion}
+            onChange={(date) => {
+              setShowLiberacionPicker(false);
+              if (date) {
+                setFormData({ ...formData, fecha_liberacion: date });
+              }
+            }}
+            showTimeSelect
+            timeIntervals={15}
+            dateFormat="Pp"
+            inline
+          />
+        ) : (
+          <DateTimePicker
+            value={formData.fecha_liberacion}
+            mode="datetime"
+            display="default"
+            onChange={(event, date) => {
+              setShowLiberacionPicker(false);
+              if (date) {
+                setFormData({ ...formData, fecha_liberacion: date });
+              }
+            }}
+          />
+        )
+      )}
+
       <Pressable style={styles.crearButton} onPress={crearReserva}>
         <Text style={styles.crearButtonText}>Crear Reserva</Text>
       </Pressable>
+
       <FlatList
         data={reservas}
         keyExtractor={(item) => item.id.toString()}
@@ -160,6 +263,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 10,
     paddingHorizontal: 10,
+    justifyContent: 'center',
   },
   crearButton: {
     backgroundColor: '#007bff',
@@ -172,6 +276,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  errorText: {
+    color: 'red',
+    marginBottom: 10,
   },
 });
 
