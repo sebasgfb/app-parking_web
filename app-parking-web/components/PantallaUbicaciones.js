@@ -49,6 +49,7 @@ const PantallaUbicaciones = ({ navigation }) => {
       </View>
       <View style={styles.contenido}>
         <Text style={styles.titulo}>Lista de Ubicaciones</Text>
+        <Text style={styles.subtitulo}>Direcciones para acceder a nuestros estacionamientos.</Text>
         <FlatList
           data={ubicaciones}
           keyExtractor={(item) => item.id.toString()}
@@ -65,6 +66,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 20,
+  },
+  subtitulo: {
+    fontSize: 16,
+    marginTop: 10,
+    textAlign: 'center',
+    color: '#666',
   },
   contenedorCargando: {
     flex: 1,

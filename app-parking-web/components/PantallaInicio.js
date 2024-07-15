@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Card } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
@@ -22,19 +23,20 @@ const PantallaInicio = ({ navigation }) => {
   return (
     <View style={styles.contenedor}>
       <View style={styles.barraNavegacion}>
-        <Text style={styles.tituloNavegacion}>Mi Aplicación</Text>
-        {/* Aquí está el Pressable de Cerrar Sesión más visible */}
+        <Text style={styles.titulo}>Sistema de Parking</Text>
         <Pressable onPress={handleCerrarSesion} style={styles.botonCerrarSesion}>
           <Text style={styles.textoBoton}>Cerrar Sesión</Text>
         </Pressable>
       </View>
+      <Card>
       <View style={styles.contenido}>
-        <Text style={styles.titulo}>¡Hola Mundo!</Text>
-        <Text style={styles.subtitulo}>Bienvenido a nuestra aplicación.</Text>
-        <Pressable style={styles.boton} onPress={handleVerUbicaciones}>
-          <Text style={styles.textoBoton}>Ver Ubicaciones</Text>
-        </Pressable>
-      </View>
+          <Text style={styles.titulo}>¡Hola!</Text>
+          <Text style={styles.subtitulo}>Bienvenido a nuestro Sistema de Reservas de Estacionamiento.</Text>
+          <Pressable style={styles.boton} onPress={handleVerUbicaciones}>
+            <Text style={styles.textoBoton}>Ver Ubicaciones</Text>
+          </Pressable>
+        </View>
+      </Card>
     </View>
   );
 };
@@ -64,10 +66,11 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
+    marginTop: 20,
   },
   subtitulo: {
     fontSize: 16,
-    marginBottom: 20,
+    marginBottom: 10,
     textAlign: 'center',
   },
   boton: {
@@ -76,6 +79,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 5,
     marginTop: 10,
+    marginBottom: 20,
   },
   textoBoton: {
     color: '#fff',
@@ -83,7 +87,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   botonCerrarSesion: {
-    backgroundColor: '#dc3545', // Color rojo para cerrar sesión
+    backgroundColor: '#dc3545',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,

@@ -45,9 +45,10 @@ const DetallesUbicacion = ({ route, navigation }) => {
         <Pressable style={styles.volverButton} onPress={() => navigation.goBack()}>
           <Text style={styles.volverButtonText}>Volver</Text>
         </Pressable>
-        <Text style={styles.tituloNavegacion}>Detalles de la Ubicación</Text>
+        <Text style={styles.tituloNavegacion}>Lugares</Text>
       </View>
       <Text style={styles.titulo}>Lugares de la Ubicación</Text>
+      <Text style={styles.subtitulo}>Seleccione algún lugar para ver las reservas o realizar alguna.</Text>
       <FlatList
         data={lugares}
         keyExtractor={(item) => item.id.toString()}
@@ -63,6 +64,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 20,
+  },
+  subtitulo: {
+    fontSize: 16,
+    marginTop: 10,
+    textAlign: 'center',
+    color: '#666',
   },
   contenedorCargando: {
     flex: 1,
